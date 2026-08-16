@@ -1,0 +1,459 @@
+--==================================================
+-- ESP + AIM ASSIST
+-- Roblox Studio - LocalScript
+-- StarterPlayer > StarterPlayerScripts
+--==================================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+--==================================================
+-- SETTINGS
+--==================================================
+
+local AIM_FOV = 300
+local AIM_SMOOTHNESS = 0.12
+
+local ESPEnabled = false
+local AimEnabled = false
+
+--==================================================
+-- GUI
+--==================================================
+
+local GUI = Instance.new("ScreenGui")
+GUI.Name = "CombatGUI"
+GUI.ResetOnSpawn = false
+GUI.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local Main = Instance.new("Frame")
+Main.Size = UDim2.fromOffset(220, 190)
+Main.Position = UDim2.new(0, 25, 0.5, -95)
+Main.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Main.BorderSizePixel = 0
+Main.Parent = GUI
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0,10)
+MainCorner.Parent = Main
+
+--==================================================
+-- TITLE
+--==================================================
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1,-40,0,40)
+Title.Position = UDim2.fromOffset(10,0)
+Title.BackgroundTransparency = 1
+Title.Text = "OWNER PANEL"
+Title.TextColor3 = Color3.new(1,1,1)
+Title.TextSize = 20
+Title.Font = Enum.Font.GothamBold
+Title.Parent = Main
+
+--==================================================
+-- CLOSE
+--==================================================
+
+local Close = Instance.new("TextButton")
+Close.Size = UDim2.fromOffset(30,30)
+Close.Position = UDim2.new(1,-35,0,5)
+Close.BackgroundColor3 = Color3.fromRGB(180,50,50)
+Close.BorderSizePixel = 0
+Close.Text = "X"
+Close.TextColor3 = Color3.new(1,1,1)
+Close.TextSize = 16
+Close.Font = Enum.Font.GothamBold
+Close.Parent = Main
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(1,0)
+CloseCorner.Parent = Close
+
+--==================================================
+-- ESP BUTTON
+--==================================================
+
+local ESPButton = Instance.new("TextButton")
+ESPButton.Size = UDim2.new(1,-20,0,45)
+ESPButton.Position = UDim2.fromOffset(10,50)
+ESPButton.BackgroundColor3 = Color3.fromRGB(55,55,55)
+ESPButton.BorderSizePixel = 0
+ESPButton.Text = "ESP: OFF"
+ESPButton.TextColor3 = Color3.new(1,1,1)
+ESPButton.TextSize = 18
+ESPButton.Font = Enum.Font.GothamBold
+ESPButton.Parent = Main
+
+local ESPCorner = Instance.new("UICorner")
+ESPCorner.CornerRadius = UDim.new(0,8)
+ESPCorner.Parent = ESPButton
+
+--==================================================
+-- AIM BUTTON
+--==================================================
+
+local AimButton = Instance.new("TextButton")
+AimButton.Size = UDim2.new(1,-20,0,45)
+AimButton.Position = UDim2.fromOffset(10,100)
+AimButton.BackgroundColor3 = Color3.fromRGB(55,55,55)
+AimButton.BorderSizePixel = 0
+AimButton.Text = "AIM: OFF"
+AimButton.TextColor3 = Color3.new(1,1,1)
+AimButton.TextSize = 18
+AimButton.Font = Enum.Font.GothamBold
+AimButton.Parent = Main
+
+local AimCorner = Instance.new("UICorner")
+AimCorner.CornerRadius = UDim.new(0,8)
+AimCorner.Parent = AimButton
+
+--==================================================
+-- OPEN BUTTON
+--==================================================
+
+local Open = Instance.new("TextButton")
+Open.Size = UDim2.fromOffset(80,40)
+Open.Position = UDim2.fromOffset(20,200)
+Open.BackgroundColor3 = Color3.fromRGB(35,35,35)
+Open.BorderSizePixel = 0
+Open.Text = "OPEN"
+Open.TextColor3 = Color3.new(1,1,1)
+Open.TextSize = 17
+Open.Font = Enum.Font.GothamBold
+Open.Visible = false
+Open.Parent = GUI
+
+local OpenCorner = Instance.new("UICorner")
+OpenCorner.CornerRadius = UDim.new(0,8)
+OpenCorner.Parent = Open
+
+Close.Activated:Connect(function()
+	Main.Visible = false
+	Open.Visible = true
+end)
+
+Open.Activated:Connect(function()
+	Main.Visible = true
+	Open.Visible = false
+end)
+
+--==================================================
+-- ESP
+--==================================================
+
+local function AddESP(player)
+
+	if player == LocalPlayer then
+		return
+	end
+
+	local character = player.Character
+	if not character then
+		return
+	end
+
+	if character:FindFirstChild("ESP_Box") then
+		return
+	end
+
+	local highlight = Instance.new("Highlight")
+
+	highlight.Name = "ESP_Box"
+	highlight.Adornee = character
+
+	highlight.FillTransparency = 1
+	highlight.OutlineTransparency = 0
+	highlight.OutlineColor = Color3.fromRGB(255,255,255)
+
+	highlight.Parent = character
+end
+
+local function RemoveESP(player)
+
+	local character = player.Character
+	if not character then
+		return
+	end
+
+	local esp = character:FindFirstChild("ESP_Box")
+
+	if esp then
+		esp:Destroy()
+	end
+end
+
+local function UpdateESP()
+
+	for _, player in ipairs(Players:GetPlayers()) do
+
+		if ESPEnabled then
+			AddESP(player)
+		else
+			RemoveESP(player)
+		end
+
+	end
+end
+
+ESPButton.Activated:Connect(function()
+
+	ESPEnabled = not ESPEnabled
+
+	if ESPEnabled then
+		ESPButton.Text = "ESP: ON"
+		ESPButton.BackgroundColor3 =
+			Color3.fromRGB(40,130,70)
+	else
+		ESPButton.Text = "ESP: OFF"
+		ESPButton.BackgroundColor3 =
+			Color3.fromRGB(55,55,55)
+	end
+
+	UpdateESP()
+end)
+
+--==================================================
+-- WALL CHECK
+--==================================================
+
+local function HasLineOfSight(targetPart)
+
+	local character = targetPart.Parent
+
+	local origin = Camera.CFrame.Position
+	local direction = targetPart.Position - origin
+
+	local params = RaycastParams.new()
+
+	params.FilterType =
+		Enum.RaycastFilterType.Exclude
+
+	params.FilterDescendantsInstances = {
+		LocalPlayer.Character
+	}
+
+	local result = workspace:Raycast(
+		origin,
+		direction,
+		params
+	)
+
+	if not result then
+		return true
+	end
+
+	return result.Instance:IsDescendantOf(character)
+end
+
+--==================================================
+-- FIND CLOSEST TARGET
+--==================================================
+
+local function GetClosestTarget()
+
+	local closestTarget = nil
+	local closestDistance = AIM_FOV
+
+	local center = Vector2.new(
+		Camera.ViewportSize.X / 2,
+		Camera.ViewportSize.Y / 2
+	)
+
+	for _, player in ipairs(Players:GetPlayers()) do
+
+		if player ~= LocalPlayer then
+
+			local character = player.Character
+
+			if character then
+
+				local humanoid =
+					character:FindFirstChildOfClass("Humanoid")
+
+				local head =
+					character:FindFirstChild("Head")
+
+				if humanoid
+					and head
+					and humanoid.Health > 0 then
+
+					local screenPosition, onScreen =
+						Camera:WorldToViewportPoint(
+							head.Position
+						)
+
+					if onScreen
+						and HasLineOfSight(head) then
+
+						local targetPosition =
+							Vector2.new(
+								screenPosition.X,
+								screenPosition.Y
+							)
+
+						local distance =
+							(targetPosition - center).Magnitude
+
+						if distance < closestDistance then
+
+							closestDistance = distance
+							closestTarget = head
+
+						end
+					end
+				end
+			end
+		end
+	end
+
+	return closestTarget
+end
+
+--==================================================
+-- AIM TOGGLE
+--==================================================
+
+AimButton.Activated:Connect(function()
+
+	AimEnabled = not AimEnabled
+
+	if AimEnabled then
+
+		AimButton.Text = "AIM: ON"
+		AimButton.BackgroundColor3 =
+			Color3.fromRGB(40,130,70)
+
+	else
+
+		AimButton.Text = "AIM: OFF"
+		AimButton.BackgroundColor3 =
+			Color3.fromRGB(55,55,55)
+	end
+end)
+
+--==================================================
+-- AIM UPDATE
+--==================================================
+
+RunService.RenderStepped:Connect(function()
+
+	if not AimEnabled then
+		return
+	end
+
+	local target = GetClosestTarget()
+
+	if not target then
+		return
+	end
+
+	local cameraPosition =
+		Camera.CFrame.Position
+
+	local targetCFrame =
+		CFrame.lookAt(
+			cameraPosition,
+			target.Position
+		)
+
+	Camera.CFrame =
+		Camera.CFrame:Lerp(
+			targetCFrame,
+			AIM_SMOOTHNESS
+		)
+end)
+
+--==================================================
+-- NEW PLAYERS / RESPAWN
+--==================================================
+
+Players.PlayerAdded:Connect(function(player)
+
+	player.CharacterAdded:Connect(function()
+
+		task.wait(0.5)
+
+		if ESPEnabled then
+			AddESP(player)
+		end
+	end)
+end)
+
+for _, player in ipairs(Players:GetPlayers()) do
+
+	if player ~= LocalPlayer then
+
+		player.CharacterAdded:Connect(function()
+
+			task.wait(0.5)
+
+			if ESPEnabled then
+				AddESP(player)
+			end
+		end)
+	end
+end
+
+--==================================================
+-- DRAG GUI
+--==================================================
+
+local dragging = false
+local dragStart
+local startPosition
+
+Title.InputBegan:Connect(function(input)
+
+	if input.UserInputType ==
+		Enum.UserInputType.MouseButton1
+		or input.UserInputType ==
+		Enum.UserInputType.Touch then
+
+		dragging = true
+		dragStart = input.Position
+		startPosition = Main.Position
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+
+	if not dragging then
+		return
+	end
+
+	if input.UserInputType ==
+		Enum.UserInputType.MouseMovement
+		or input.UserInputType ==
+		Enum.UserInputType.Touch then
+
+		local delta =
+			input.Position - dragStart
+
+		Main.Position =
+			UDim2.new(
+				startPosition.X.Scale,
+				startPosition.X.Offset + delta.X,
+
+				startPosition.Y.Scale,
+				startPosition.Y.Offset + delta.Y
+			)
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+
+	if input.UserInputType ==
+		Enum.UserInputType.MouseButton1
+		or input.UserInputType ==
+		Enum.UserInputType.Touch then
+
+		dragging = false
+	end
+end)
+
+print("ESP + Aim Assist loaded!")
