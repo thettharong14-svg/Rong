@@ -1,0 +1,274 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+
+--// GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "PowerGui"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+--// Main Box
+local box = Instance.new("Frame")
+box.Size = UDim2.new(0, 230, 0, 230)
+box.Position = UDim2.new(0.5, -115, 0.5, -115)
+box.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+box.BorderSizePixel = 0
+box.Parent = gui
+
+local boxCorner = Instance.new("UICorner")
+boxCorner.CornerRadius = UDim.new(0, 12)
+boxCorner.Parent = box
+
+--// Title / Drag Area
+local title = Instance.new("TextButton")
+title.Size = UDim2.new(1, -45, 0, 40)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "⚡ POWER GUI"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 20
+title.Font = Enum.Font.GothamBold
+title.Parent = box
+
+--// Close Button
+local close = Instance.new("TextButton")
+close.Size = UDim2.new(0, 40, 0, 40)
+close.Position = UDim2.new(1, -40, 0, 0)
+close.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+close.Text = "X"
+close.TextColor3 = Color3.fromRGB(255, 255, 255)
+close.TextSize = 18
+close.Font = Enum.Font.GothamBold
+close.Parent = box
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = close
+
+--// Open Button
+local open = Instance.new("TextButton")
+open.Size = UDim2.new(0, 80, 0, 40)
+open.Position = UDim2.new(0, 15, 0.5, -20)
+open.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+open.Text = "OPEN"
+open.TextColor3 = Color3.fromRGB(255, 255, 255)
+open.TextSize = 16
+open.Font = Enum.Font.GothamBold
+open.Visible = false
+open.Parent = gui
+
+local openCorner = Instance.new("UICorner")
+openCorner.CornerRadius = UDim.new(0, 8)
+openCorner.Parent = open
+
+--// Close / Open
+close.MouseButton1Click:Connect(function()
+	box.Visible = false
+	open.Visible = true
+end)
+
+open.MouseButton1Click:Connect(function()
+	box.Visible = true
+	open.Visible = false
+end)
+
+--// Button Creator
+local function makeButton(text, y)
+	local button = Instance.new("TextButton")
+
+	button.Size = UDim2.new(0, 190, 0, 45)
+	button.Position = UDim2.new(0, 20, 0, y)
+
+	button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	button.BorderSizePixel = 0
+
+	button.Text = text
+	button.TextColor3 = Color3.fromRGB(255, 255, 255)
+	button.TextSize = 16
+	button.Font = Enum.Font.GothamBold
+
+	button.Parent = box
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 8)
+	corner.Parent = button
+
+	return button
+end
+
+--// Buttons
+local speedButton = makeButton("WalkSpeed: OFF", 50)
+local jumpButton = makeButton("Infinite Jump: OFF", 105)
+local noclipButton = makeButton("Noclip: OFF", 160)
+
+--==================================================
+-- WALK SPEED
+--==================================================
+
+local speedOn = false
+
+speedButton.MouseButton1Click:Connect(function()
+
+	speedOn = not speedOn
+
+	if speedOn then
+		speedButton.Text = "WalkSpeed: ON"
+	else
+		speedButton.Text = "WalkSpeed: OFF"
+	end
+
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+
+	if humanoid then
+		if speedOn then
+			humanoid.WalkSpeed = 50
+		else
+			humanoid.WalkSpeed = 16
+		end
+	end
+end)
+
+--==================================================
+-- INFINITE JUMP
+--==================================================
+
+local jumpOn = false
+
+jumpButton.MouseButton1Click:Connect(function()
+
+	jumpOn = not jumpOn
+
+	if jumpOn then
+		jumpButton.Text = "Infinite Jump: ON"
+	else
+		jumpButton.Text = "Infinite Jump: OFF"
+	end
+end)
+
+UserInputService.JumpRequest:Connect(function()
+
+	if jumpOn then
+
+		local character = player.Character
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+
+		if humanoid then
+			humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+		end
+	end
+end)
+
+--==================================================
+-- NOCLIP
+--==================================================
+
+local noclipOn = false
+
+noclipButton.MouseButton1Click:Connect(function()
+
+	noclipOn = not noclipOn
+
+	if noclipOn then
+		noclipButton.Text = "Noclip: ON"
+	else
+		noclipButton.Text = "Noclip: OFF"
+	end
+end)
+
+RunService.Stepped:Connect(function()
+
+	if noclipOn then
+
+		local character = player.Character
+
+		if character then
+
+			for _, part in pairs(character:GetDescendants()) do
+
+				if part:IsA("BasePart") then
+					part.CanCollide = false
+				end
+
+			end
+		end
+	end
+end)
+
+--==================================================
+-- DRAG / MOVE GUI
+--==================================================
+
+local dragging = false
+local dragStart
+local startPos
+
+title.InputBegan:Connect(function(input)
+
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+		or input.UserInputType == Enum.UserInputType.Touch then
+
+		dragging = true
+
+		dragStart = input.Position
+		startPos = box.Position
+	end
+end)
+
+title.InputEnded:Connect(function(input)
+
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+		or input.UserInputType == Enum.UserInputType.Touch then
+
+		dragging = false
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+
+	if dragging then
+
+		if input.UserInputType == Enum.UserInputType.MouseMovement
+			or input.UserInputType == Enum.UserInputType.Touch then
+
+			local delta = input.Position - dragStart
+
+			box.Position = UDim2.new(
+				startPos.X.Scale,
+				startPos.X.Offset + delta.X,
+
+				startPos.Y.Scale,
+				startPos.Y.Offset + delta.Y
+			)
+		end
+	end
+end)
+
+--==================================================
+-- RESET NOCLIP AFTER RESPAWN
+--==================================================
+
+player.CharacterAdded:Connect(function(character)
+
+	task.wait(1)
+
+	if noclipOn then
+
+		for _, part in pairs(character:GetDescendants()) do
+
+			if part:IsA("BasePart") then
+				part.CanCollide = false
+			end
+
+		end
+	end
+
+	if speedOn then
+
+		local humanoid = character:WaitForChild("Humanoid")
+		humanoid.WalkSpeed = 50
+	end
+end)
