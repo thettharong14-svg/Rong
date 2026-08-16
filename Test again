@@ -1,0 +1,179 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "PowerGui"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Main box
+local box = Instance.new("Frame")
+box.Size = UDim2.new(0, 230, 0, 230)
+box.Position = UDim2.new(0.5, -115, 0.5, -115)
+box.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+box.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = box
+
+-- Title / Drag bar
+local title = Instance.new("TextButton")
+title.Size = UDim2.new(1, -45, 0, 40)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "⚡ POWER GUI"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextSize = 20
+title.Font = Enum.Font.GothamBold
+title.Parent = box
+
+-- Close button
+local close = Instance.new("TextButton")
+close.Size = UDim2.new(0, 40, 0, 40)
+close.Position = UDim2.new(1, -40, 0, 0)
+close.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+close.Text = "X"
+close.TextColor3 = Color3.new(1, 1, 1)
+close.TextSize = 18
+close.Font = Enum.Font.GothamBold
+close.Parent = box
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = close
+
+-- Open button
+local open = Instance.new("TextButton")
+open.Size = UDim2.new(0, 80, 0, 40)
+open.Position = UDim2.new(0, 15, 0.5, -20)
+open.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+open.Text = "OPEN"
+open.TextColor3 = Color3.new(1, 1, 1)
+open.TextSize = 16
+open.Font = Enum.Font.GothamBold
+open.Visible = false
+open.Parent = gui
+
+local openCorner = Instance.new("UICorner")
+openCorner.CornerRadius = UDim.new(0, 8)
+openCorner.Parent = open
+
+-- Close / Open
+close.MouseButton1Click:Connect(function()
+	box.Visible = false
+	open.Visible = true
+end)
+
+open.MouseButton1Click:Connect(function()
+	box.Visible = true
+	open.Visible = false
+end)
+
+-- Buttons
+local function makeButton(text, y)
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(0, 190, 0, 45)
+	button.Position = UDim2.new(0, 20, 0, y)
+	button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	button.TextColor3 = Color3.new(1, 1, 1)
+	button.TextSize = 16
+	button.Font = Enum.Font.GothamBold
+	button.Text = text
+	button.Parent = box
+
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 8)
+	c.Parent = button
+
+	return button
+end
+
+local speedButton = makeButton("WalkSpeed: OFF", 50)
+local jumpButton = makeButton("Infinite Jump: OFF", 105)
+local phantomButton = makeButton("Phantom Safe: OFF", 160)
+
+-- WalkSpeed
+local speedOn = false
+
+speedButton.MouseButton1Click:Connect(function()
+	speedOn = not speedOn
+	speedButton.Text = speedOn and "WalkSpeed: ON" or "WalkSpeed: OFF"
+
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+
+	if humanoid then
+		humanoid.WalkSpeed = speedOn and 50 or 16
+	end
+end)
+
+-- Infinite Jump
+local jumpOn = false
+
+jumpButton.MouseButton1Click:Connect(function()
+	jumpOn = not jumpOn
+	jumpButton.Text = jumpOn and "Infinite Jump: ON" or "Infinite Jump: OFF"
+end)
+
+UserInputService.JumpRequest:Connect(function()
+	if jumpOn then
+		local character = player.Character
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+
+		if humanoid then
+			humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+		end
+	end
+end)
+
+-- Phantom Safe toggle
+local phantomOn = false
+
+phantomButton.MouseButton1Click:Connect(function()
+	phantomOn = not phantomOn
+	phantomButton.Text = phantomOn and "Phantom Safe: ON" or "Phantom Safe: OFF"
+end)
+
+-- DRAG SYSTEM
+local dragging = false
+local dragStart
+local startPos
+
+title.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+		or input.UserInputType == Enum.UserInputType.Touch then
+
+		dragging = true
+		dragStart = input.Position
+		startPos = box.Position
+	end
+end)
+
+title.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+		or input.UserInputType == Enum.UserInputType.Touch then
+
+		dragging = false
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and (
+		input.UserInputType == Enum.UserInputType.MouseMovement
+		or input.UserInputType == Enum.UserInputType.Touch
+	) then
+
+		local delta = input.Position - dragStart
+
+		box.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+end)
