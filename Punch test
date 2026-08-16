@@ -1,0 +1,64 @@
+local Tool = script.Parent
+
+local DAMAGE = 999999
+local COOLDOWN = 0.5
+
+local canPunch = true
+
+Tool.Activated:Connect(function()
+
+	if not canPunch then
+		return
+	end
+
+	canPunch = false
+
+	local character = Tool.Parent
+	local root = character:FindFirstChild("HumanoidRootPart")
+
+	if not root then
+		canPunch = true
+		return
+	end
+
+	-- Punch range
+	local hitboxSize = Vector3.new(5, 5, 5)
+	local hitboxCFrame = root.CFrame * CFrame.new(0, 0, -3)
+
+	local parts = workspace:GetPartBoundsInBox(
+		hitboxCFrame,
+		hitboxSize
+	)
+
+	local hitNPCs = {}
+
+	for _, part in ipairs(parts) do
+
+		local model = part:FindFirstAncestorOfClass("Model")
+
+		if model
+			and model ~= character
+			and not hitNPCs[model] then
+
+			local humanoid =
+				model:FindFirstChildOfClass("Humanoid")
+
+			-- Only attack NPCs
+			local targetPlayer =
+				game.Players:GetPlayerFromCharacter(model)
+
+			if humanoid
+				and humanoid.Health > 0
+				and not targetPlayer then
+
+				hitNPCs[model] = true
+
+				-- One-shot NPC
+				humanoid.Health = 0
+			end
+		end
+	end
+
+	task.wait(COOLDOWN)
+	canPunch = true
+end)
