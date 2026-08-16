@@ -1,0 +1,254 @@
+-- Movement Recorder GUI
+-- Put this LocalScript in StarterPlayer > StarterPlayerScripts
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+
+-- SETTINGS
+local RECORD_INTERVAL = 0.05
+
+-- State
+local recording = false
+local playing = false
+local movementData = {}
+local recordConnection
+local playbackConnection
+
+local function getCharacter()
+	return player.Character or player.CharacterAdded:Wait()
+end
+
+local function getRoot()
+	local character = getCharacter()
+	return character:FindFirstChild("HumanoidRootPart")
+end
+
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "MovementRecorder"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local box = Instance.new("Frame")
+box.Name = "RecorderBox"
+box.Size = UDim2.new(0, 220, 0, 220)
+box.Position = UDim2.new(0.5, -110, 0.5, -110)
+box.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+box.BorderSizePixel = 0
+box.Active = true
+box.Draggable = true
+box.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = box
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 40)
+title.BackgroundTransparency = 1
+title.Text = "MOVEMENT RECORDER"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextSize = 18
+title.Font = Enum.Font.GothamBold
+title.Parent = box
+
+local status = Instance.new("TextLabel")
+status.Position = UDim2.new(0, 10, 0, 38)
+status.Size = UDim2.new(1, -20, 0, 25)
+status.BackgroundTransparency = 1
+status.Text = "Ready"
+status.TextColor3 = Color3.fromRGB(180, 180, 180)
+status.TextSize = 14
+status.Font = Enum.Font.Gotham
+status.Parent = box
+
+local function makeButton(text, y)
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(1, -20, 0, 32)
+	button.Position = UDim2.new(0, 10, 0, y)
+	button.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+	button.TextColor3 = Color3.new(1, 1, 1)
+	button.Text = text
+	button.TextSize = 14
+	button.Font = Enum.Font.GothamBold
+	button.BorderSizePixel = 0
+	button.Parent = box
+
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 7)
+	c.Parent = button
+
+	return button
+end
+
+local recButton = makeButton("🔴  REC", 68)
+local stopRecButton = makeButton("⏹  STOP REC", 105)
+local playbackButton = makeButton("▶  PLAYBACK", 142)
+local stopPlaybackButton = makeButton("⏹  STOP PLAYBACK", 179)
+
+-- Stop playback
+local function stopPlayback()
+	playing = false
+
+	if playbackConnection then
+		playbackConnection:Disconnect()
+		playbackConnection = nil
+	end
+
+	status.Text = "Playback stopped"
+end
+
+-- Stop recording
+local function stopRecording()
+	recording = false
+
+	if recordConnection then
+		recordConnection:Disconnect()
+		recordConnection = nil
+	end
+
+	status.Text = "Recorded " .. #movementData .. " frames"
+end
+
+-- Start recording
+local function startRecording()
+	if playing then
+		stopPlayback()
+	end
+
+	if recording then
+		return
+	end
+
+	movementData = {}
+	recording = true
+
+	status.Text = "🔴 Recording..."
+
+	local timer = 0
+
+	recordConnection = RunService.Heartbeat:Connect(function(dt)
+		if not recording then
+			return
+		end
+
+		timer += dt
+
+		if timer >= RECORD_INTERVAL then
+			timer = 0
+
+			local root = getRoot()
+
+			if root then
+				table.insert(movementData, {
+					Time = os.clock(),
+					CFrame = root.CFrame
+				})
+			end
+		end
+	end)
+end
+
+-- Playback
+local function startPlayback()
+	if recording then
+		stopRecording()
+	end
+
+	if playing then
+		return
+	end
+
+	if #movementData < 2 then
+		status.Text = "Nothing recorded!"
+		return
+	end
+
+	playing = true
+	status.Text = "▶ Playing..."
+
+	local character = getCharacter()
+	local root = character:FindFirstChild("HumanoidRootPart")
+
+	if not root then
+		playing = false
+		return
+	end
+
+	local startTime = movementData[1].Time
+	local endTime = movementData[#movementData].Time
+
+	local index = 1
+
+	playbackConnection = RunService.Heartbeat:Connect(function()
+		if not playing then
+			return
+		end
+
+		local elapsed = os.clock() - startTime
+
+		-- Finished
+		if elapsed >= (endTime - startTime) then
+			root.CFrame = movementData[#movementData].CFrame
+			stopPlayback()
+			status.Text = "Playback finished"
+			return
+		end
+
+		-- Find next frame
+		while index < #movementData
+			and movementData[index + 1].Time - startTime <= elapsed do
+
+			index += 1
+		end
+
+		local current = movementData[index]
+		local nextFrame = movementData[index + 1]
+
+		if current and nextFrame then
+			local t1 = current.Time - startTime
+			local t2 = nextFrame.Time - startTime
+
+			local alpha = 0
+
+			if t2 > t1 then
+				alpha = (elapsed - t1) / (t2 - t1)
+			end
+
+			root.CFrame = current.CFrame:Lerp(
+				nextFrame.CFrame,
+				math.clamp(alpha, 0, 1)
+			)
+		end
+	end)
+end
+
+-- Buttons
+recButton.MouseButton1Click:Connect(startRecording)
+
+stopRecButton.MouseButton1Click:Connect(function()
+	if recording then
+		stopRecording()
+	else
+		status.Text = "Not recording"
+	end
+end)
+
+playbackButton.MouseButton1Click:Connect(startPlayback)
+
+stopPlaybackButton.MouseButton1Click:Connect(function()
+	if playing then
+		stopPlayback()
+	else
+		status.Text = "Not playing"
+	end
+end)
+
+-- Stop when character dies
+player.CharacterAdded:Connect(function()
+	if playing then
+		stopPlayback()
+	end
+end)
