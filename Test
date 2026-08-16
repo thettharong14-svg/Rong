@@ -1,0 +1,229 @@
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+local checkpoints = workspace:WaitForChild("Checkpoints")
+
+local currentCheckpoint = 1
+local lastCheckpoint = 251
+
+--// GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "CheckpointTeleportGUI"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Main box
+local box = Instance.new("Frame")
+box.Size = UDim2.new(0, 240, 0, 250)
+box.Position = UDim2.new(0.5, -120, 0.5, -125)
+box.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+box.BorderSizePixel = 0
+box.Active = true
+box.Draggable = true
+box.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = box
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -45, 0, 40)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "CHECKPOINT TELEPORT"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextSize = 17
+title.Font = Enum.Font.GothamBold
+title.Parent = box
+
+-- Close button
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 35, 0, 35)
+closeButton.Position = UDim2.new(1, -40, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.TextSize = 18
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = box
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = closeButton
+
+-- Checkpoint display
+local checkpointText = Instance.new("TextLabel")
+checkpointText.Size = UDim2.new(1, -20, 0, 40)
+checkpointText.Position = UDim2.new(0, 10, 0, 48)
+checkpointText.BackgroundTransparency = 1
+checkpointText.TextColor3 = Color3.fromRGB(255, 255, 255)
+checkpointText.TextSize = 20
+checkpointText.Font = Enum.Font.GothamBold
+checkpointText.Parent = box
+
+-- Function to make buttons
+local function makeButton(text, position)
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(0, 105, 0, 38)
+	button.Position = position
+	button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+	button.Text = text
+	button.TextColor3 = Color3.new(1, 1, 1)
+	button.TextSize = 14
+	button.Font = Enum.Font.GothamBold
+	button.BorderSizePixel = 0
+	button.Parent = box
+
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 8)
+	c.Parent = button
+
+	return button
+end
+
+local previousButton = makeButton(
+	"◀ PREVIOUS",
+	UDim2.new(0, 10, 0, 95)
+)
+
+local nextButton = makeButton(
+	"NEXT ▶",
+	UDim2.new(0, 125, 0, 95)
+)
+
+local teleportButton = makeButton(
+	"TELEPORT",
+	UDim2.new(0, 10, 0, 140)
+)
+
+local lastButton = makeButton(
+	"LAST 🏁",
+	UDim2.new(0, 125, 0, 140)
+)
+
+-- Status
+local status = Instance.new("TextLabel")
+status.Size = UDim2.new(1, -20, 0, 35)
+status.Position = UDim2.new(0, 10, 0, 190)
+status.BackgroundTransparency = 1
+status.Text = "Ready"
+status.TextColor3 = Color3.fromRGB(180, 180, 180)
+status.TextSize = 14
+status.Font = Enum.Font.Gotham
+status.Parent = box
+
+-- Open button
+local openButton = Instance.new("TextButton")
+openButton.Size = UDim2.new(0, 100, 0, 40)
+openButton.Position = UDim2.new(0, 10, 0.5, -20)
+openButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+openButton.Text = "OPEN"
+openButton.TextColor3 = Color3.new(1, 1, 1)
+openButton.TextSize = 15
+openButton.Font = Enum.Font.GothamBold
+openButton.Visible = false
+openButton.Parent = gui
+
+local openCorner = Instance.new("UICorner")
+openCorner.CornerRadius = UDim.new(0, 8)
+openCorner.Parent = openButton
+
+--// Update display
+local function updateText()
+	checkpointText.Text =
+		"Checkpoint: " .. currentCheckpoint .. " / " .. lastCheckpoint
+end
+
+--// Get checkpoint
+local function getCheckpoint(number)
+	return checkpoints:FindFirstChild(tostring(number))
+end
+
+--// Teleport
+local function teleportToCheckpoint(number)
+	local character = player.Character
+
+	if not character then
+		return
+	end
+
+	local root = character:FindFirstChild("HumanoidRootPart")
+
+	if not root then
+		return
+	end
+
+	local checkpoint = getCheckpoint(number)
+
+	if not checkpoint then
+		status.Text = "Checkpoint " .. number .. " not found!"
+		return
+	end
+
+	if checkpoint:IsA("BasePart") then
+		root.CFrame = checkpoint.CFrame + Vector3.new(0, 4, 0)
+
+	elseif checkpoint:IsA("Model") then
+		root.CFrame =
+			checkpoint:GetPivot() + Vector3.new(0, 4, 0)
+
+	else
+		status.Text = "Invalid checkpoint!"
+		return
+	end
+
+	currentCheckpoint = number
+	updateText()
+
+	status.Text = "Teleported!"
+end
+
+--// Previous
+previousButton.MouseButton1Click:Connect(function()
+	if currentCheckpoint > 1 then
+		currentCheckpoint -= 1
+		updateText()
+		status.Text = "Checkpoint selected"
+	else
+		status.Text = "Already at checkpoint 1"
+	end
+end)
+
+--// Next
+nextButton.MouseButton1Click:Connect(function()
+	if currentCheckpoint < lastCheckpoint then
+		currentCheckpoint += 1
+		updateText()
+		status.Text = "Checkpoint selected"
+	else
+		status.Text = "Already at last checkpoint"
+	end
+end)
+
+--// Teleport selected
+teleportButton.MouseButton1Click:Connect(function()
+	teleportToCheckpoint(currentCheckpoint)
+end)
+
+--// Last checkpoint
+lastButton.MouseButton1Click:Connect(function()
+	currentCheckpoint = lastCheckpoint
+	updateText()
+	teleportToCheckpoint(lastCheckpoint)
+end)
+
+--// Close
+closeButton.MouseButton1Click:Connect(function()
+	box.Visible = false
+	openButton.Visible = true
+end)
+
+--// Open
+openButton.MouseButton1Click:Connect(function()
+	box.Visible = true
+	openButton.Visible = false
+end)
+
+-- Initial
+updateText()
