@@ -1,6 +1,7 @@
 --========================================================
--- 🩵 THARONG's script
--- COMPLETE ROBLOX STUDIO TEST LOCAL SCRIPT
+-- 🩵 THARONG'S AIM TEST
+-- WIDE 520 x 330 ROBLOX STUDIO TEST GUI
+-- LocalScript
 --========================================================
 
 local Players = game:GetService("Players")
@@ -9,7 +10,6 @@ local UserInputService = game:GetService("UserInputService")
 
 local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
-
 local Camera = workspace.CurrentCamera
 
 --========================================================
@@ -26,26 +26,25 @@ local Settings = {
 
 	DashEnabled = false,
 	DashPower = 75,
-	DashCooldown = 1,
-
-	MenuVisible = true
+	DashCooldown = 1
 }
 
 local CanDash = true
+local MenuVisible = true
 
 --========================================================
 -- COLORS
 --========================================================
 
-local SKY = Color3.fromRGB(45, 180, 235)
-local SKY_LIGHT = Color3.fromRGB(100, 220, 255)
-local DARK = Color3.fromRGB(8, 25, 42)
-local BUTTON = Color3.fromRGB(20, 65, 90)
-local BUTTON_ON = Color3.fromRGB(30, 150, 220)
-local WHITE = Color3.fromRGB(255, 255, 255)
+local SKY = Color3.fromRGB(40, 180, 235)
+local LIGHT = Color3.fromRGB(130, 230, 255)
+local DARK = Color3.fromRGB(7, 25, 42)
+local BUTTON = Color3.fromRGB(18, 65, 90)
+local ON = Color3.fromRGB(25, 145, 215)
+local WHITE = Color3.fromRGB(255,255,255)
 
 --========================================================
--- GUI
+-- SCREEN GUI
 --========================================================
 
 local GUI = Instance.new("ScreenGui")
@@ -60,19 +59,19 @@ GUI.Parent = PlayerGui
 
 local Main = Instance.new("Frame")
 Main.Name = "Main"
-Main.Size = UDim2.fromOffset(290, 500)
-Main.Position = UDim2.new(0, 20, 0.5, -250)
+Main.Size = UDim2.fromOffset(520,330)
+Main.Position = UDim2.new(0.5,-260,0.5,-165)
 Main.BackgroundColor3 = DARK
 Main.BorderSizePixel = 0
 Main.Active = true
 Main.Parent = GUI
 
 local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 18)
+MainCorner.CornerRadius = UDim.new(0,18)
 MainCorner.Parent = Main
 
 local MainStroke = Instance.new("UIStroke")
-MainStroke.Color = SKY_LIGHT
+MainStroke.Color = LIGHT
 MainStroke.Thickness = 2
 MainStroke.Parent = Main
 
@@ -81,21 +80,21 @@ MainStroke.Parent = Main
 --========================================================
 
 local Header = Instance.new("Frame")
-Header.Size = UDim2.new(1, 0, 0, 60)
+Header.Size = UDim2.new(1,0,0,58)
 Header.BackgroundColor3 = SKY
 Header.BorderSizePixel = 0
 Header.Active = true
 Header.Parent = Main
 
 local HeaderCorner = Instance.new("UICorner")
-HeaderCorner.CornerRadius = UDim.new(0, 18)
+HeaderCorner.CornerRadius = UDim.new(0,18)
 HeaderCorner.Parent = Header
 
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -60, 1, 0)
-Title.Position = UDim2.fromOffset(15, 0)
+Title.Size = UDim2.new(1,-65,1,0)
+Title.Position = UDim2.fromOffset(16,0)
 Title.BackgroundTransparency = 1
-Title.Text = "🩵 Tharong's Aim Test"
+Title.Text = "🩵 THARONG'S AIM TEST"
 Title.TextColor3 = WHITE
 Title.TextSize = 20
 Title.Font = Enum.Font.GothamBold
@@ -107,9 +106,9 @@ Title.Parent = Header
 --========================================================
 
 local Close = Instance.new("TextButton")
-Close.Size = UDim2.fromOffset(38, 38)
-Close.Position = UDim2.new(1, -48, 0, 11)
-Close.BackgroundColor3 = Color3.fromRGB(15, 95, 145)
+Close.Size = UDim2.fromOffset(38,38)
+Close.Position = UDim2.new(1,-48,0,10)
+Close.BackgroundColor3 = Color3.fromRGB(15,90,140)
 Close.BorderSizePixel = 0
 Close.Text = "X"
 Close.TextColor3 = WHITE
@@ -118,150 +117,156 @@ Close.Font = Enum.Font.GothamBold
 Close.Parent = Header
 
 local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(1, 0)
+CloseCorner.CornerRadius = UDim.new(1,0)
 CloseCorner.Parent = Close
 
 --========================================================
--- SCROLLING CONTENT
+-- LEFT COLUMN
 --========================================================
 
-local Scroll = Instance.new("ScrollingFrame")
-Scroll.Name = "Settings"
-Scroll.Size = UDim2.new(1, -10, 1, -70)
-Scroll.Position = UDim2.fromOffset(5, 65)
-Scroll.BackgroundTransparency = 1
-Scroll.BorderSizePixel = 0
-Scroll.ScrollBarThickness = 4
-Scroll.CanvasSize = UDim2.fromOffset(0, 0)
-Scroll.Parent = Main
+local Left = Instance.new("Frame")
+Left.Name = "LeftColumn"
+Left.Size = UDim2.fromOffset(245,245)
+Left.Position = UDim2.fromOffset(12,72)
+Left.BackgroundTransparency = 1
+Left.Parent = Main
 
-local Layout = Instance.new("UIListLayout")
-Layout.Padding = UDim.new(0, 8)
-Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-Layout.Parent = Scroll
+local LeftLayout = Instance.new("UIListLayout")
+LeftLayout.Padding = UDim.new(0,8)
+LeftLayout.Parent = Left
 
 --========================================================
--- BUTTON CREATOR
+-- RIGHT COLUMN
 --========================================================
 
-local function CreateButton(text)
+local Right = Instance.new("Frame")
+Right.Name = "RightColumn"
+Right.Size = UDim2.fromOffset(245,245)
+Right.Position = UDim2.fromOffset(263,72)
+Right.BackgroundTransparency = 1
+Right.Parent = Main
 
-	local Button = Instance.new("TextButton")
-
-	Button.Size = UDim2.new(1, -12, 0, 43)
-
-	Button.BackgroundColor3 = BUTTON
-	Button.BorderSizePixel = 0
-
-	Button.Text = text
-	Button.TextColor3 = WHITE
-	Button.TextSize = 15
-	Button.Font = Enum.Font.GothamBold
-
-	Button.AutoButtonColor = false
-	Button.Parent = Scroll
-
-	local Corner = Instance.new("UICorner")
-	Corner.CornerRadius = UDim.new(0, 10)
-	Corner.Parent = Button
-
-	local Stroke = Instance.new("UIStroke")
-	Stroke.Color = SKY_LIGHT
-	Stroke.Transparency = 0.35
-	Stroke.Parent = Button
-
-	return Button
-end
+local RightLayout = Instance.new("UIListLayout")
+RightLayout.Padding = UDim.new(0,8)
+RightLayout.Parent = Right
 
 --========================================================
 -- SECTION LABEL
 --========================================================
 
-local function CreateSection(text)
+local function Section(parent,text)
 
 	local Label = Instance.new("TextLabel")
 
-	Label.Size = UDim2.new(1, -12, 0, 28)
+	Label.Size = UDim2.new(1,0,0,25)
 	Label.BackgroundTransparency = 1
-
 	Label.Text = text
-	Label.TextColor3 = SKY_LIGHT
+	Label.TextColor3 = LIGHT
 	Label.TextSize = 14
 	Label.Font = Enum.Font.GothamBold
-
 	Label.TextXAlignment = Enum.TextXAlignment.Left
-	Label.Parent = Scroll
+	Label.Parent = parent
 
 	return Label
 end
 
 --========================================================
--- MAIN BUTTONS
+-- BUTTON
 --========================================================
 
-CreateSection("🎯 AIM TEST")
+local function Button(parent,text)
+
+	local B = Instance.new("TextButton")
+
+	B.Size = UDim2.new(1,0,0,43)
+	B.BackgroundColor3 = BUTTON
+	B.BorderSizePixel = 0
+	B.Text = text
+	B.TextColor3 = WHITE
+	B.TextSize = 14
+	B.Font = Enum.Font.GothamBold
+	B.AutoButtonColor = false
+	B.Parent = parent
+
+	local Corner = Instance.new("UICorner")
+	Corner.CornerRadius = UDim.new(0,10)
+	Corner.Parent = B
+
+	local Stroke = Instance.new("UIStroke")
+	Stroke.Color = LIGHT
+	Stroke.Transparency = 0.45
+	Stroke.Parent = B
+
+	return B
+end
+
+--========================================================
+-- LEFT CONTROLS
+--========================================================
+
+Section(Left,"🎯 AIM SETTINGS")
 
 local AimButton =
-	CreateButton("🎯 AIM ASSIST: OFF")
+	Button(Left,"🎯 AIM ASSIST: OFF")
 
 local WallButton =
-	CreateButton("🧱 WALL CHECK: ON")
+	Button(Left,"🧱 WALL CHECK: ON")
 
 local PullButton =
-	CreateButton("🧲 PULL: 25%")
+	Button(Left,"🧲 PULL: 25%")
 
 local FOVButton =
-	CreateButton("⭕ FOV: 300")
-
-CreateSection("👁️ VISUALS")
-
-local ESPButton =
-	CreateButton("📦 ESP: OFF")
-
-CreateSection("💨 MOVEMENT")
-
-local DashToggle =
-	CreateButton("💨 DASH: OFF")
-
-local DashPowerButton =
-	CreateButton("⚡ DASH POWER: 75")
-
-CreateSection("⚙️ MENU")
-
-local ResetButton =
-	CreateButton("🔄 RESET SETTINGS")
+	Button(Left,"⭕ FOV: 300")
 
 --========================================================
--- MOBILE DASH BUTTON
+-- RIGHT CONTROLS
+--========================================================
+
+Section(Right,"👁️ VISUALS")
+
+local ESPButton =
+	Button(Right,"📦 ESP: OFF")
+
+Section(Right,"💨 MOVEMENT")
+
+local DashButton =
+	Button(Right,"💨 DASH: OFF")
+
+local DashPowerButton =
+	Button(Right,"⚡ DASH POWER: 75")
+
+Section(Right,"⚙️ OPTIONS")
+
+local ResetButton =
+	Button(Right,"🔄 RESET SETTINGS")
+
+--========================================================
+-- MOBILE DASH
 --========================================================
 
 local DashMobile = Instance.new("TextButton")
 
 DashMobile.Name = "MobileDash"
-
-DashMobile.Size =
-	UDim2.fromOffset(70, 70)
+DashMobile.Size = UDim2.fromOffset(70,70)
 
 DashMobile.Position =
-	UDim2.new(1, -170, 1, -145)
+	UDim2.new(1,-170,1,-145)
 
 DashMobile.BackgroundColor3 = SKY
 DashMobile.BorderSizePixel = 0
-
 DashMobile.Text = "💨"
 DashMobile.TextSize = 30
 DashMobile.TextColor3 = WHITE
 DashMobile.Font = Enum.Font.GothamBold
-
 DashMobile.Visible = false
 DashMobile.Parent = GUI
 
 local DashCorner = Instance.new("UICorner")
-DashCorner.CornerRadius = UDim.new(1, 0)
+DashCorner.CornerRadius = UDim.new(1,0)
 DashCorner.Parent = DashMobile
 
 local DashStroke = Instance.new("UIStroke")
-DashStroke.Color = SKY_LIGHT
+DashStroke.Color = LIGHT
 DashStroke.Thickness = 3
 DashStroke.Parent = DashMobile
 
@@ -272,29 +277,23 @@ DashStroke.Parent = DashMobile
 local Open = Instance.new("TextButton")
 
 Open.Name = "OpenButton"
-
-Open.Size =
-	UDim2.fromOffset(62, 62)
-
-Open.Position =
-	UDim2.fromOffset(20, 200)
+Open.Size = UDim2.fromOffset(62,62)
+Open.Position = UDim2.fromOffset(20,200)
 
 Open.BackgroundColor3 = SKY
 Open.BorderSizePixel = 0
-
 Open.Text = "🩵"
 Open.TextSize = 27
 Open.TextColor3 = WHITE
-
 Open.Visible = false
 Open.Parent = GUI
 
 local OpenCorner = Instance.new("UICorner")
-OpenCorner.CornerRadius = UDim.new(1, 0)
+OpenCorner.CornerRadius = UDim.new(1,0)
 OpenCorner.Parent = Open
 
 local OpenStroke = Instance.new("UIStroke")
-OpenStroke.Color = SKY_LIGHT
+OpenStroke.Color = LIGHT
 OpenStroke.Thickness = 3
 OpenStroke.Parent = Open
 
@@ -302,13 +301,13 @@ OpenStroke.Parent = Open
 -- ESP
 --========================================================
 
-local function AddESP(TargetPlayer)
+local function AddESP(Target)
 
-	if TargetPlayer == Player then
+	if Target == Player then
 		return
 	end
 
-	local Character = TargetPlayer.Character
+	local Character = Target.Character
 
 	if not Character then
 		return
@@ -322,29 +321,22 @@ local function AddESP(TargetPlayer)
 
 	Highlight.Name = "TharongESP"
 	Highlight.Adornee = Character
-
 	Highlight.FillTransparency = 1
 	Highlight.OutlineTransparency = 0
-
-	Highlight.OutlineColor =
-		SKY_LIGHT
-
-	Highlight.DepthMode =
-		Enum.HighlightDepthMode.AlwaysOnTop
-
+	Highlight.OutlineColor = LIGHT
+	Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 	Highlight.Parent = Character
 end
 
-local function RemoveESP(TargetPlayer)
+local function RemoveESP(Target)
 
-	local Character = TargetPlayer.Character
+	local Character = Target.Character
 
 	if not Character then
 		return
 	end
 
-	local ESP =
-		Character:FindFirstChild("TharongESP")
+	local ESP = Character:FindFirstChild("TharongESP")
 
 	if ESP then
 		ESP:Destroy()
@@ -353,41 +345,33 @@ end
 
 local function UpdateESP()
 
-	for _, TargetPlayer in ipairs(
-		Players:GetPlayers()
-	) do
+	for _,Target in ipairs(Players:GetPlayers()) do
 
-		if TargetPlayer ~= Player then
+		if Target ~= Player then
 
 			if Settings.ESPEnabled then
-				AddESP(TargetPlayer)
+				AddESP(Target)
 			else
-				RemoveESP(TargetPlayer)
+				RemoveESP(Target)
 			end
+
 		end
 	end
 end
 
 ESPButton.Activated:Connect(function()
 
-	Settings.ESPEnabled =
-		not Settings.ESPEnabled
+	Settings.ESPEnabled = not Settings.ESPEnabled
 
 	if Settings.ESPEnabled then
 
-		ESPButton.Text =
-			"📦 ESP: ON"
-
-		ESPButton.BackgroundColor3 =
-			BUTTON_ON
+		ESPButton.Text = "📦 ESP: ON"
+		ESPButton.BackgroundColor3 = ON
 
 	else
 
-		ESPButton.Text =
-			"📦 ESP: OFF"
-
-		ESPButton.BackgroundColor3 =
-			BUTTON
+		ESPButton.Text = "📦 ESP: OFF"
+		ESPButton.BackgroundColor3 = BUTTON
 
 	end
 
@@ -404,8 +388,7 @@ local function HasLineOfSight(TargetPart)
 		return true
 	end
 
-	local Character =
-		TargetPart.Parent
+	local Character = TargetPart.Parent
 
 	local Origin =
 		Camera.CFrame.Position
@@ -413,8 +396,7 @@ local function HasLineOfSight(TargetPart)
 	local Direction =
 		TargetPart.Position - Origin
 
-	local Params =
-		RaycastParams.new()
+	local Params = RaycastParams.new()
 
 	Params.FilterType =
 		Enum.RaycastFilterType.Exclude
@@ -434,9 +416,7 @@ local function HasLineOfSight(TargetPart)
 		return true
 	end
 
-	return Result.Instance:IsDescendantOf(
-		Character
-	)
+	return Result.Instance:IsDescendantOf(Character)
 end
 
 WallButton.Activated:Connect(function()
@@ -449,16 +429,14 @@ WallButton.Activated:Connect(function()
 		WallButton.Text =
 			"🧱 WALL CHECK: ON"
 
-		WallButton.BackgroundColor3 =
-			BUTTON_ON
+		WallButton.BackgroundColor3 = ON
 
 	else
 
 		WallButton.Text =
 			"🧱 WALL CHECK: OFF"
 
-		WallButton.BackgroundColor3 =
-			BUTTON
+		WallButton.BackgroundColor3 = BUTTON
 
 	end
 end)
@@ -470,22 +448,18 @@ end)
 local function GetClosestTarget()
 
 	local Closest = nil
-	local ClosestDistance =
-		Settings.AimFOV
+	local ClosestDistance = Settings.AimFOV
 
 	local Center = Vector2.new(
-		Camera.ViewportSize.X / 2,
-		Camera.ViewportSize.Y / 2
+		Camera.ViewportSize.X/2,
+		Camera.ViewportSize.Y/2
 	)
 
-	for _, TargetPlayer in ipairs(
-		Players:GetPlayers()
-	) do
+	for _,Target in ipairs(Players:GetPlayers()) do
 
-		if TargetPlayer ~= Player then
+		if Target ~= Player then
 
-			local Character =
-				TargetPlayer.Character
+			local Character = Target.Character
 
 			if Character then
 
@@ -495,16 +469,13 @@ local function GetClosestTarget()
 					)
 
 				local Head =
-					Character:FindFirstChild(
-						"Head"
-					)
+					Character:FindFirstChild("Head")
 
 				if Humanoid
 					and Head
 					and Humanoid.Health > 0 then
 
-					local ScreenPosition,
-						OnScreen =
+					local Position,OnScreen =
 						Camera:WorldToViewportPoint(
 							Head.Position
 						)
@@ -514,12 +485,12 @@ local function GetClosestTarget()
 
 						local Point =
 							Vector2.new(
-								ScreenPosition.X,
-								ScreenPosition.Y
+								Position.X,
+								Position.Y
 							)
 
 						local Distance =
-							(Point - Center).Magnitude
+							(Point-Center).Magnitude
 
 						if Distance <
 							ClosestDistance then
@@ -527,8 +498,7 @@ local function GetClosestTarget()
 							ClosestDistance =
 								Distance
 
-							Closest =
-								Head
+							Closest = Head
 						end
 					end
 				end
@@ -540,7 +510,7 @@ local function GetClosestTarget()
 end
 
 --========================================================
--- AIM ASSIST
+-- AIM TOGGLE
 --========================================================
 
 AimButton.Activated:Connect(function()
@@ -553,22 +523,20 @@ AimButton.Activated:Connect(function()
 		AimButton.Text =
 			"🎯 AIM ASSIST: ON"
 
-		AimButton.BackgroundColor3 =
-			BUTTON_ON
+		AimButton.BackgroundColor3 = ON
 
 	else
 
 		AimButton.Text =
 			"🎯 AIM ASSIST: OFF"
 
-		AimButton.BackgroundColor3 =
-			BUTTON
+		AimButton.BackgroundColor3 = BUTTON
 
 	end
 end)
 
 --========================================================
--- PULL STRENGTH
+-- PULL
 --========================================================
 
 local PullLevels = {
@@ -595,7 +563,7 @@ PullButton.Activated:Connect(function()
 	PullButton.Text =
 		"🧲 PULL: " ..
 		math.floor(
-			Settings.PullStrength * 100
+			Settings.PullStrength*100
 		) ..
 		"%"
 end)
@@ -704,15 +672,9 @@ local function DoDash()
 		Humanoid.MoveDirection
 
 	if Direction.Magnitude < 0.05 then
-
-		Direction =
-			Root.CFrame.LookVector
-
+		Direction = Root.CFrame.LookVector
 	else
-
-		Direction =
-			Direction.Unit
-
+		Direction = Direction.Unit
 	end
 
 	local Y =
@@ -720,16 +682,12 @@ local function DoDash()
 
 	Root.AssemblyLinearVelocity =
 		Vector3.new(
-			Direction.X *
-				Settings.DashPower,
-
+			Direction.X * Settings.DashPower,
 			Y,
-
-			Direction.Z *
-				Settings.DashPower
+			Direction.Z * Settings.DashPower
 		)
 
-	task.delay(0.18, function()
+	task.delay(0.18,function()
 
 		if Root and Root.Parent then
 
@@ -738,49 +696,42 @@ local function DoDash()
 
 			Root.AssemblyLinearVelocity =
 				Vector3.new(
-					Velocity.X * 0.35,
+					Velocity.X*0.35,
 					Velocity.Y,
-					Velocity.Z * 0.35
+					Velocity.Z*0.35
 				)
 		end
 	end)
 
-	task.delay(
-		Settings.DashCooldown,
-		function()
-
-			CanDash = true
-
-		end
-	)
+	task.delay(Settings.DashCooldown,function()
+		CanDash = true
+	end)
 end
 
 --========================================================
 -- DASH TOGGLE
 --========================================================
 
-DashToggle.Activated:Connect(function()
+DashButton.Activated:Connect(function()
 
 	Settings.DashEnabled =
 		not Settings.DashEnabled
 
 	if Settings.DashEnabled then
 
-		DashToggle.Text =
+		DashButton.Text =
 			"💨 DASH: ON"
 
-		DashToggle.BackgroundColor3 =
-			BUTTON_ON
+		DashButton.BackgroundColor3 = ON
 
 		DashMobile.Visible = true
 
 	else
 
-		DashToggle.Text =
+		DashButton.Text =
 			"💨 DASH: OFF"
 
-		DashToggle.BackgroundColor3 =
-			BUTTON
+		DashButton.BackgroundColor3 = BUTTON
 
 		DashMobile.Visible = false
 
@@ -838,33 +789,20 @@ ResetButton.Activated:Connect(function()
 	FOVIndex = 3
 	DashPowerIndex = 2
 
-	AimButton.Text =
-		"🎯 AIM ASSIST: OFF"
-
-	ESPButton.Text =
-		"📦 ESP: OFF"
-
-	WallButton.Text =
-		"🧱 WALL CHECK: ON"
-
-	PullButton.Text =
-		"🧲 PULL: 25%"
-
-	FOVButton.Text =
-		"⭕ FOV: 300"
-
-	DashToggle.Text =
-		"💨 DASH: OFF"
-
-	DashPowerButton.Text =
-		"⚡ DASH POWER: 75"
+	AimButton.Text = "🎯 AIM ASSIST: OFF"
+	WallButton.Text = "🧱 WALL CHECK: ON"
+	PullButton.Text = "🧲 PULL: 25%"
+	FOVButton.Text = "⭕ FOV: 300"
+	ESPButton.Text = "📦 ESP: OFF"
+	DashButton.Text = "💨 DASH: OFF"
+	DashPowerButton.Text = "⚡ DASH POWER: 75"
 
 	AimButton.BackgroundColor3 = BUTTON
-	ESPButton.BackgroundColor3 = BUTTON
-	WallButton.BackgroundColor3 = BUTTON_ON
+	WallButton.BackgroundColor3 = ON
 	PullButton.BackgroundColor3 = BUTTON
 	FOVButton.BackgroundColor3 = BUTTON
-	DashToggle.BackgroundColor3 = BUTTON
+	ESPButton.BackgroundColor3 = BUTTON
+	DashButton.BackgroundColor3 = BUTTON
 	DashPowerButton.BackgroundColor3 = BUTTON
 
 	DashMobile.Visible = false
@@ -873,24 +811,30 @@ ResetButton.Activated:Connect(function()
 end)
 
 --========================================================
--- HIDE / SHOW
+-- HIDE GUI
+-- DASH BUTTON STAYS
 --========================================================
 
 Close.Activated:Connect(function()
 
-	Settings.MenuVisible = false
+	MenuVisible = false
 
 	Main.Visible = false
 	Open.Visible = true
 
-	-- Dash stays available!
+	-- IMPORTANT:
+	-- Dash button does NOT disappear
 	DashMobile.Visible =
 		Settings.DashEnabled
 end)
 
+--========================================================
+-- SHOW GUI
+--========================================================
+
 Open.Activated:Connect(function()
 
-	Settings.MenuVisible = true
+	MenuVisible = true
 
 	Main.Visible = true
 	Open.Visible = false
@@ -900,7 +844,7 @@ Open.Activated:Connect(function()
 end)
 
 --========================================================
--- DRAG MENU
+-- DRAG WINDOW
 --========================================================
 
 local Dragging = false
@@ -957,60 +901,33 @@ UserInputService.InputEnded:Connect(function(Input)
 end)
 
 --========================================================
--- PLAYER RESPAWN
+-- PLAYER RESPAWN / ESP
 --========================================================
 
-local function SetupPlayer(TargetPlayer)
+local function SetupPlayer(Target)
 
-	if TargetPlayer == Player then
+	if Target == Player then
 		return
 	end
 
-	TargetPlayer.CharacterAdded:Connect(
-		function()
+	Target.CharacterAdded:Connect(function()
 
-			task.wait(0.5)
+		task.wait(0.5)
 
-			if Settings.ESPEnabled then
-				AddESP(TargetPlayer)
-			end
+		if Settings.ESPEnabled then
+			AddESP(Target)
 		end
-	)
+	end)
 end
 
-for _, TargetPlayer in ipairs(
-	Players:GetPlayers()
-) do
-
-	SetupPlayer(TargetPlayer)
-
+for _,Target in ipairs(Players:GetPlayers()) do
+	SetupPlayer(Target)
 end
 
-Players.PlayerAdded:Connect(
-	SetupPlayer
-)
+Players.PlayerAdded:Connect(SetupPlayer)
 
 --========================================================
--- UPDATE SCROLL SIZE
+-- DONE
 --========================================================
 
-local function UpdateCanvas()
-
-	Scroll.CanvasSize =
-		UDim2.fromOffset(
-			0,
-			Layout.AbsoluteContentSize.Y + 10
-		)
-end
-
-Layout:GetPropertyChangedSignal(
-	"AbsoluteContentSize"
-):Connect(UpdateCanvas)
-
-UpdateCanvas()
-
---========================================================
--- START
---========================================================
-
-print("🩵 Tharong's Aim Test loaded!")
+print("🩵 THARONG'S WIDE AIM TEST LOADED!")
