@@ -1,0 +1,295 @@
+--// AIM ASSIST + ESP TEST SYSTEM
+--// For your own Roblox Studio experience
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+--// SETTINGS
+local AimEnabled = false
+local ESPEnabled = true
+local WallCheck = true
+
+local AimRange = 250
+local AimStrength = 0.35 -- higher = stronger pull
+local TeamCheck = true
+
+local espObjects = {}
+
+--// GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "AimAssistTest"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 230, 0, 245)
+frame.Position = UDim2.new(0, 20, 0.5, -120)
+frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0,10)
+corner.Parent = frame
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,40)
+title.BackgroundTransparency = 1
+title.Text = "🎯 Aim Assist Tester"
+title.TextColor3 = Color3.new(1,1,1)
+title.TextSize = 18
+title.Font = Enum.Font.GothamBold
+title.Parent = frame
+
+local function makeButton(text, y)
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(1,-20,0,38)
+	button.Position = UDim2.new(0,10,0,y)
+	button.BackgroundColor3 = Color3.fromRGB(50,50,50)
+	button.TextColor3 = Color3.new(1,1,1)
+	button.TextSize = 14
+	button.Font = Enum.Font.Gotham
+	button.Text = text
+	button.AutoButtonColor = true
+	button.Parent = frame
+
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0,7)
+	c.Parent = button
+
+	return button
+end
+
+local aimButton = makeButton("Aim Assist: OFF",45)
+local espButton = makeButton("ESP: ON",88)
+local wallButton = makeButton("Wall Check: ON",131)
+local strengthButton = makeButton("Strong Pull: 35%",174)
+local closeButton = makeButton("Close GUI",217)
+
+--// ESP
+local function removeESP(plr)
+	if espObjects[plr] then
+		espObjects[plr]:Destroy()
+		espObjects[plr] = nil
+	end
+end
+
+local function createESP(plr)
+	if plr == player then return end
+
+	local box = Instance.new("Highlight")
+	box.Name = "AimTestESP"
+	box.FillTransparency = 1
+	box.OutlineTransparency = 0
+	box.OutlineColor = Color3.fromRGB(255,255,255)
+	box.DepthMode = Enum.HighlightDepthMode.Occluded
+	box.Parent = gui
+
+	espObjects[plr] = box
+
+	local function update()
+		if not ESPEnabled then
+			box.Enabled = false
+			return
+		end
+
+		local character = plr.Character
+
+		if not character then
+			box.Enabled = false
+			return
+		end
+
+		local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+		if not humanoid or humanoid.Health <= 0 then
+			box.Enabled = false
+			return
+		end
+
+		if TeamCheck and plr.Team == player.Team then
+			box.Enabled = false
+			return
+		end
+
+		box.Adornee = character
+		box.Enabled = true
+	end
+
+	RunService.RenderStepped:Connect(update)
+end
+
+for _,plr in ipairs(Players:GetPlayers()) do
+	createESP(plr)
+end
+
+Players.PlayerAdded:Connect(createESP)
+Players.PlayerRemoving:Connect(removeESP)
+
+--// WALL CHECK
+local function canSee(character)
+	if not WallCheck then
+		return true
+	end
+
+	local head = character:FindFirstChild("Head")
+	if not head then
+		return false
+	end
+
+	local origin = camera.CFrame.Position
+	local direction = head.Position - origin
+
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = {
+		player.Character
+	}
+
+	local result = workspace:Raycast(origin,direction,params)
+
+	if not result then
+		return true
+	end
+
+	return result.Instance:IsDescendantOf(character)
+end
+
+--// FIND TARGET
+local function getTarget()
+	local bestTarget = nil
+	local bestDistance = AimRange
+
+	local center = camera.ViewportSize / 2
+
+	for _,plr in ipairs(Players:GetPlayers()) do
+		if plr ~= player then
+
+			if TeamCheck and plr.Team == player.Team then
+				continue
+			end
+
+			local character = plr.Character
+			if not character then
+				continue
+			end
+
+			local humanoid = character:FindFirstChildOfClass("Humanoid")
+			local head = character:FindFirstChild("Head")
+
+			if not humanoid or humanoid.Health <= 0 or not head then
+				continue
+			end
+
+			if not canSee(character) then
+				continue
+			end
+
+			local screenPosition, onScreen =
+				camera:WorldToViewportPoint(head.Position)
+
+			if not onScreen then
+				continue
+			end
+
+			local distance =
+				(Vector2.new(screenPosition.X,screenPosition.Y)-center).Magnitude
+
+			if distance < bestDistance then
+				bestDistance = distance
+				bestTarget = head
+			end
+		end
+	end
+
+	return bestTarget
+end
+
+--// AIM ASSIST
+RunService.RenderStepped:Connect(function()
+
+	if not AimEnabled then
+		return
+	end
+
+	local target = getTarget()
+
+	if not target then
+		return
+	end
+
+	local cameraPosition = camera.CFrame.Position
+
+	local targetCFrame =
+		CFrame.lookAt(cameraPosition,target.Position)
+
+	camera.CFrame =
+		camera.CFrame:Lerp(targetCFrame,AimStrength)
+end)
+
+--// BUTTONS
+aimButton.MouseButton1Click:Connect(function()
+	AimEnabled = not AimEnabled
+
+	if AimEnabled then
+		aimButton.Text = "Aim Assist: ON"
+		aimButton.BackgroundColor3 = Color3.fromRGB(40,120,60)
+	else
+		aimButton.Text = "Aim Assist: OFF"
+		aimButton.BackgroundColor3 = Color3.fromRGB(50,50,50)
+	end
+end)
+
+espButton.MouseButton1Click:Connect(function()
+	ESPEnabled = not ESPEnabled
+
+	if ESPEnabled then
+		espButton.Text = "ESP: ON"
+	else
+		espButton.Text = "ESP: OFF"
+	end
+end)
+
+wallButton.MouseButton1Click:Connect(function()
+	WallCheck = not WallCheck
+
+	if WallCheck then
+		wallButton.Text = "Wall Check: ON"
+	else
+		wallButton.Text = "Wall Check: OFF"
+	end
+end)
+
+strengthButton.MouseButton1Click:Connect(function()
+
+	-- cycle strength
+	if AimStrength == 0.35 then
+		AimStrength = 0.65
+	elseif AimStrength == 0.65 then
+		AimStrength = 0.9
+	else
+		AimStrength = 0.35
+	end
+
+	strengthButton.Text =
+		"Strong Pull: "..math.floor(AimStrength*100).."%"
+end)
+
+closeButton.MouseButton1Click:Connect(function()
+	frame.Visible = false
+end)
+
+--// Re-open GUI with RightShift (PC testing)
+UserInputService.InputBegan:Connect(function(input,gpe)
+	if gpe then return end
+
+	if input.KeyCode == Enum.KeyCode.RightShift then
+		frame.Visible = not frame.Visible
+	end
+end)
