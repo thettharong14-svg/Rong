@@ -1,0 +1,263 @@
+--// 🩵 SKY BLUE AIM TESTER
+--// For your own Roblox Studio experience
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+--==================================================
+-- SETTINGS
+--==================================================
+
+local aimEnabled = false
+local espEnabled = true
+local wallCheck = true
+local teamCheck = true
+
+local aimStrength = 0.35
+local aimRange = 300
+
+--==================================================
+-- GUI
+--==================================================
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "SkyBlueAimTester"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+--==================================================
+-- MAIN WINDOW
+--==================================================
+
+local main = Instance.new("Frame")
+main.Size = UDim2.fromOffset(290, 335)
+main.Position = UDim2.new(0, 20, 0.5, -167)
+main.BackgroundColor3 = Color3.fromRGB(12, 25, 38)
+main.BorderSizePixel = 0
+main.Active = true
+main.Parent = gui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 18)
+mainCorner.Parent = main
+
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Color = Color3.fromRGB(70, 200, 255)
+mainStroke.Thickness = 2
+mainStroke.Parent = main
+
+--==================================================
+-- TITLE BAR
+--==================================================
+
+local top = Instance.new("Frame")
+top.Size = UDim2.new(1, 0, 0, 62)
+top.BackgroundColor3 = Color3.fromRGB(35, 145, 210)
+top.BorderSizePixel = 0
+top.Parent = main
+
+local topCorner = Instance.new("UICorner")
+topCorner.CornerRadius = UDim.new(0, 18)
+topCorner.Parent = top
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -60, 1, 0)
+title.Position = UDim2.fromOffset(18, 0)
+title.BackgroundTransparency = 1
+title.Text = "🎯  AIM TESTER"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextSize = 20
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = top
+
+--==================================================
+-- CLOSE
+--==================================================
+
+local close = Instance.new("TextButton")
+close.Size = UDim2.fromOffset(40, 40)
+close.Position = UDim2.new(1, -48, 0, 11)
+close.BackgroundColor3 = Color3.fromRGB(20, 110, 170)
+close.Text = "×"
+close.TextSize = 28
+close.TextColor3 = Color3.new(1, 1, 1)
+close.Font = Enum.Font.GothamBold
+close.Parent = top
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 12)
+closeCorner.Parent = close
+
+--==================================================
+-- BUTTON CREATOR
+--==================================================
+
+local function makeButton(text, y)
+
+	local button = Instance.new("TextButton")
+
+	button.Size = UDim2.new(1, -30, 0, 43)
+	button.Position = UDim2.fromOffset(15, y)
+
+	button.BackgroundColor3 = Color3.fromRGB(25, 55, 75)
+
+	button.Text = text
+	button.TextColor3 = Color3.new(1, 1, 1)
+	button.TextSize = 14
+	button.Font = Enum.Font.GothamSemibold
+
+	button.AutoButtonColor = false
+	button.Parent = main
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 12)
+	corner.Parent = button
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(70, 170, 220)
+	stroke.Transparency = 0.4
+	stroke.Parent = button
+
+	return button
+end
+
+local aimButton = makeButton("🎯  Aim Assist     OFF", 78)
+local espButton = makeButton("📦  ESP              ON", 128)
+local wallButton = makeButton("🧱  Wall Check   ON", 178)
+local strengthButton = makeButton("🧲  Strong Pull  35%", 228)
+local teamButton = makeButton("👥  Team Check   ON", 278)
+
+--==================================================
+-- DRAG MAIN WINDOW
+--==================================================
+
+local dragging = false
+local dragStart
+local startPosition
+
+top.InputBegan:Connect(function(input)
+
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+		or input.UserInputType == Enum.UserInputType.Touch then
+
+		dragging = true
+		dragStart = input.Position
+		startPosition = main.Position
+
+		input.Changed:Connect(function()
+
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+
+		end)
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+
+	if not dragging then
+		return
+	end
+
+	if input.UserInputType == Enum.UserInputType.MouseMovement
+		or input.UserInputType == Enum.UserInputType.Touch then
+
+		local delta = input.Position - dragStart
+
+		main.Position = UDim2.new(
+			startPosition.X.Scale,
+			startPosition.X.Offset + delta.X,
+			startPosition.Y.Scale,
+			startPosition.Y.Offset + delta.Y
+		)
+	end
+end)
+
+--==================================================
+-- FLOATING REOPEN BUTTON
+--==================================================
+
+local openButton = Instance.new("TextButton")
+
+openButton.Size = UDim2.fromOffset(60, 60)
+openButton.Position = UDim2.new(0, 20, 0.5, -30)
+
+openButton.BackgroundColor3 =
+	Color3.fromRGB(70, 190, 255)
+
+openButton.Text = "🎯"
+openButton.TextSize = 27
+openButton.TextColor3 = Color3.new(1, 1, 1)
+
+openButton.Visible = false
+openButton.AutoButtonColor = false
+openButton.Active = true
+openButton.Parent = gui
+
+local openCorner = Instance.new("UICorner")
+openCorner.CornerRadius = UDim.new(1, 0)
+openCorner.Parent = openButton
+
+local openStroke = Instance.new("UIStroke")
+openStroke.Color = Color3.fromRGB(180, 240, 255)
+openStroke.Thickness = 3
+openStroke.Parent = openButton
+
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(
+		0,
+		Color3.fromRGB(100, 220, 255)
+	),
+	ColorSequenceKeypoint.new(
+		1,
+		Color3.fromRGB(30, 120, 220)
+	)
+})
+gradient.Rotation = 45
+gradient.Parent = openButton
+
+--==================================================
+-- DRAG FLOATING BUTTON
+--==================================================
+
+local orbDragging = false
+local orbStart
+local orbPosition
+
+openButton.InputBegan:Connect(function(input)
+
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+		or input.UserInputType == Enum.UserInputType.Touch then
+
+		orbDragging = false
+		orbStart = input.Position
+		orbPosition = openButton.Position
+
+		input.Changed:Connect(function()
+
+			if input.UserInputState == Enum.UserInputState.End then
+
+				if not orbDragging then
+					main.Visible = true
+					openButton.Visible = false
+				end
+
+				orbStart = nil
+			end
+
+		end)
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+
+	if not orbStart then
+	
