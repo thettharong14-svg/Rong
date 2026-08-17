@@ -1,0 +1,560 @@
+--==================================================
+-- 🩵 THARONG'S AIM TEST
+-- ESP + AIM ASSIST + WALL CHECK + STRONG PULL
+--==================================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+--==================================================
+-- SETTINGS
+--==================================================
+
+local AIM_FOV = 300
+local AIM_SMOOTHNESS = 0.12
+
+local ESPEnabled = false
+local AimEnabled = false
+local WallCheckEnabled = true
+
+--==================================================
+-- GUI
+--==================================================
+
+local GUI = Instance.new("ScreenGui")
+GUI.Name = "TharongAimTest"
+GUI.ResetOnSpawn = false
+GUI.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local Main = Instance.new("Frame")
+Main.Name = "Main"
+Main.Size = UDim2.fromOffset(250, 300)
+Main.Position = UDim2.new(0, 25, 0.5, -150)
+Main.BackgroundColor3 = Color3.fromRGB(8, 25, 42)
+Main.BorderSizePixel = 0
+Main.Active = true
+Main.Parent = GUI
+
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 16)
+Corner.Parent = Main
+
+local Stroke = Instance.new("UIStroke")
+Stroke.Color = Color3.fromRGB(70, 210, 255)
+Stroke.Thickness = 3
+Stroke.Parent = Main
+
+--==================================================
+-- HEADER
+--==================================================
+
+local Header = Instance.new("Frame")
+Header.Size = UDim2.new(1, 0, 0, 58)
+Header.BackgroundColor3 = Color3.fromRGB(35, 170, 230)
+Header.BorderSizePixel = 0
+Header.Active = true
+Header.Parent = Main
+
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, 16)
+HeaderCorner.Parent = Header
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -55, 1, 0)
+Title.Position = UDim2.fromOffset(12, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "🩵 Tharong's Aim Test"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.TextSize = 18
+Title.Font = Enum.Font.GothamBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Header
+
+--==================================================
+-- CLOSE
+--==================================================
+
+local Close = Instance.new("TextButton")
+Close.Size = UDim2.fromOffset(38, 38)
+Close.Position = UDim2.new(1, -47, 0, 10)
+Close.BackgroundColor3 = Color3.fromRGB(15, 95, 145)
+Close.BorderSizePixel = 0
+Close.Text = "X"
+Close.TextColor3 = Color3.new(1, 1, 1)
+Close.TextSize = 18
+Close.Font = Enum.Font.GothamBold
+Close.Parent = Header
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(1, 0)
+CloseCorner.Parent = Close
+
+--==================================================
+-- BUTTON CREATOR
+--==================================================
+
+local function MakeButton(name, text, y)
+
+	local Button = Instance.new("TextButton")
+	Button.Name = name
+	Button.Size = UDim2.new(1, -20, 0, 42)
+	Button.Position = UDim2.fromOffset(10, y)
+	Button.BackgroundColor3 = Color3.fromRGB(20, 65, 90)
+	Button.BorderSizePixel = 0
+	Button.Text = text
+	Button.TextColor3 = Color3.new(1, 1, 1)
+	Button.TextSize = 15
+	Button.Font = Enum.Font.GothamBold
+	Button.AutoButtonColor = false
+	Button.Parent = Main
+
+	local C = Instance.new("UICorner")
+	C.CornerRadius = UDim.new(0, 10)
+	C.Parent = Button
+
+	local S = Instance.new("UIStroke")
+	S.Color = Color3.fromRGB(80, 200, 245)
+	S.Thickness = 1.5
+	S.Transparency = 0.25
+	S.Parent = Button
+
+	return Button
+end
+
+local ESPButton =
+	MakeButton("ESPButton", "📦 ESP: OFF", 70)
+
+local AimButton =
+	MakeButton("AimButton", "🎯 AIM: OFF", 118)
+
+local WallButton =
+	MakeButton("WallButton", "🧱 WALL CHECK: ON", 166)
+
+local PullButton =
+	MakeButton("PullButton", "🧲 STRONG PULL: 12%", 214)
+
+--==================================================
+-- OPEN BUTTON
+--==================================================
+
+local Open = Instance.new("TextButton")
+Open.Name = "OpenButton"
+Open.Size = UDim2.fromOffset(60, 60)
+Open.Position = UDim2.fromOffset(20, 200)
+Open.BackgroundColor3 = Color3.fromRGB(40, 185, 245)
+Open.BorderSizePixel = 0
+Open.Text = "🎯"
+Open.TextSize = 25
+Open.TextColor3 = Color3.new(1, 1, 1)
+Open.Visible = false
+Open.Parent = GUI
+
+local OpenCorner = Instance.new("UICorner")
+OpenCorner.CornerRadius = UDim.new(1, 0)
+OpenCorner.Parent = Open
+
+local OpenStroke = Instance.new("UIStroke")
+OpenStroke.Color = Color3.fromRGB(170, 245, 255)
+OpenStroke.Thickness = 3
+OpenStroke.Parent = Open
+
+--==================================================
+-- OPEN / CLOSE
+--==================================================
+
+Close.Activated:Connect(function()
+	Main.Visible = false
+	Open.Visible = true
+end)
+
+Open.Activated:Connect(function()
+	Main.Visible = true
+	Open.Visible = false
+end)
+
+--==================================================
+-- ESP
+--==================================================
+
+local function AddESP(player)
+
+	if player == LocalPlayer then
+		return
+	end
+
+	local character = player.Character
+
+	if not character then
+		return
+	end
+
+	local old = character:FindFirstChild("TharongESP")
+
+	if old then
+		return
+	end
+
+	local highlight = Instance.new("Highlight")
+	highlight.Name = "TharongESP"
+	highlight.Adornee = character
+	highlight.FillTransparency = 1
+	highlight.OutlineTransparency = 0
+	highlight.OutlineColor = Color3.fromRGB(70, 210, 255)
+	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	highlight.Parent = character
+end
+
+local function RemoveESP(player)
+
+	local character = player.Character
+
+	if not character then
+		return
+	end
+
+	local esp = character:FindFirstChild("TharongESP")
+
+	if esp then
+		esp:Destroy()
+	end
+end
+
+local function UpdateESP()
+
+	for _, player in ipairs(Players:GetPlayers()) do
+
+		if player ~= LocalPlayer then
+
+			if ESPEnabled then
+				AddESP(player)
+			else
+				RemoveESP(player)
+			end
+
+		end
+	end
+end
+
+ESPButton.Activated:Connect(function()
+
+	ESPEnabled = not ESPEnabled
+
+	if ESPEnabled then
+
+		ESPButton.Text = "📦 ESP: ON"
+		ESPButton.BackgroundColor3 =
+			Color3.fromRGB(30, 150, 220)
+
+	else
+
+		ESPButton.Text = "📦 ESP: OFF"
+		ESPButton.BackgroundColor3 =
+			Color3.fromRGB(20, 65, 90)
+
+	end
+
+	UpdateESP()
+end)
+
+--==================================================
+-- WALL CHECK
+--==================================================
+
+local function HasLineOfSight(targetPart)
+
+	if not WallCheckEnabled then
+		return true
+	end
+
+	local character = targetPart.Parent
+
+	local origin = Camera.CFrame.Position
+	local direction = targetPart.Position - origin
+
+	local params = RaycastParams.new()
+
+	params.FilterType =
+		Enum.RaycastFilterType.Exclude
+
+	params.FilterDescendantsInstances = {
+		LocalPlayer.Character
+	}
+
+	local result = workspace:Raycast(
+		origin,
+		direction,
+		params
+	)
+
+	if result == nil then
+		return true
+	end
+
+	return result.Instance:IsDescendantOf(character)
+end
+
+--==================================================
+-- WALL BUTTON
+--==================================================
+
+WallButton.Activated:Connect(function()
+
+	WallCheckEnabled = not WallCheckEnabled
+
+	if WallCheckEnabled then
+
+		WallButton.Text =
+			"🧱 WALL CHECK: ON"
+
+		WallButton.BackgroundColor3 =
+			Color3.fromRGB(30, 150, 220)
+
+	else
+
+		WallButton.Text =
+			"🧱 WALL CHECK: OFF"
+
+		WallButton.BackgroundColor3 =
+			Color3.fromRGB(20, 65, 90)
+
+	end
+end)
+
+--==================================================
+-- FIND TARGET
+--==================================================
+
+local function GetClosestTarget()
+
+	local closest = nil
+	local closestDistance = AIM_FOV
+
+	local center = Vector2.new(
+		Camera.ViewportSize.X / 2,
+		Camera.ViewportSize.Y / 2
+	)
+
+	for _, player in ipairs(Players:GetPlayers()) do
+
+		if player ~= LocalPlayer then
+
+			local character = player.Character
+
+			if character then
+
+				local humanoid =
+					character:FindFirstChildOfClass("Humanoid")
+
+				local head =
+					character:FindFirstChild("Head")
+
+				if humanoid
+					and head
+					and humanoid.Health > 0 then
+
+					local screenPos, visible =
+						Camera:WorldToViewportPoint(
+							head.Position
+						)
+
+					if visible
+						and HasLineOfSight(head) then
+
+						local point =
+							Vector2.new(
+								screenPos.X,
+								screenPos.Y
+							)
+
+						local distance =
+							(point - center).Magnitude
+
+						if distance < closestDistance then
+
+							closestDistance = distance
+							closest = head
+
+						end
+					end
+				end
+			end
+		end
+	end
+
+	return closest
+end
+
+--==================================================
+-- AIM BUTTON
+--==================================================
+
+AimButton.Activated:Connect(function()
+
+	AimEnabled = not AimEnabled
+
+	if AimEnabled then
+
+		AimButton.Text = "🎯 AIM: ON"
+		AimButton.BackgroundColor3 =
+			Color3.fromRGB(30, 150, 220)
+
+	else
+
+		AimButton.Text = "🎯 AIM: OFF"
+		AimButton.BackgroundColor3 =
+			Color3.fromRGB(20, 65, 90)
+
+	end
+end)
+
+--==================================================
+-- STRONG PULL
+--==================================================
+
+PullButton.Activated:Connect(function()
+
+	if AIM_SMOOTHNESS == 0.12 then
+
+		AIM_SMOOTHNESS = 0.30
+		PullButton.Text =
+			"🧲 STRONG PULL: 30%"
+
+	elseif AIM_SMOOTHNESS == 0.30 then
+
+		AIM_SMOOTHNESS = 0.60
+		PullButton.Text =
+			"🧲 STRONG PULL: 60%"
+
+	elseif AIM_SMOOTHNESS == 0.60 then
+
+		AIM_SMOOTHNESS = 0.90
+		PullButton.Text =
+			"🧲 STRONG PULL: 90%"
+
+	else
+
+		AIM_SMOOTHNESS = 0.12
+		PullButton.Text =
+			"🧲 STRONG PULL: 12%"
+
+	end
+end)
+
+--==================================================
+-- AIM UPDATE
+--==================================================
+
+RunService.RenderStepped:Connect(function()
+
+	if not AimEnabled then
+		return
+	end
+
+	local target = GetClosestTarget()
+
+	if not target then
+		return
+	end
+
+	local cameraPosition =
+		Camera.CFrame.Position
+
+	local targetCFrame =
+		CFrame.lookAt(
+			cameraPosition,
+			target.Position
+		)
+
+	Camera.CFrame =
+		Camera.CFrame:Lerp(
+			targetCFrame,
+			AIM_SMOOTHNESS
+		)
+end)
+
+--==================================================
+-- PLAYER RESPAWN
+--==================================================
+
+local function SetupPlayer(player)
+
+	if player == LocalPlayer then
+		return
+	end
+
+	player.CharacterAdded:Connect(function()
+
+		task.wait(0.5)
+
+		if ESPEnabled then
+			AddESP(player)
+		end
+	end)
+end
+
+for _, player in ipairs(Players:GetPlayers()) do
+	SetupPlayer(player)
+end
+
+Players.PlayerAdded:Connect(SetupPlayer)
+
+--==================================================
+-- DRAG MAIN
+--==================================================
+
+local dragging = false
+local dragStart
+local startPosition
+
+Header.InputBegan:Connect(function(input)
+
+	if input.UserInputType ==
+		Enum.UserInputType.MouseButton1
+		or input.UserInputType ==
+		Enum.UserInputType.Touch then
+
+		dragging = true
+		dragStart = input.Position
+		startPosition = Main.Position
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+
+	if not dragging then
+		return
+	end
+
+	if input.UserInputType ==
+		Enum.UserInputType.MouseMovement
+		or input.UserInputType ==
+		Enum.UserInputType.Touch then
+
+		local delta =
+			input.Position - dragStart
+
+		Main.Position = UDim2.new(
+			startPosition.X.Scale,
+			startPosition.X.Offset + delta.X,
+			startPosition.Y.Scale,
+			startPosition.Y.Offset + delta.Y
+		)
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+
+	if input.UserInputType ==
+		Enum.UserInputType.MouseButton1
+		or input.UserInputType ==
+		Enum.UserInputType.Touch then
+
+		dragging = false
+	end
+end)
+
+print("🩵 Tharong's Aim Test loaded!")
