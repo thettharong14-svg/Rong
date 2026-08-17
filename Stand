@@ -1,0 +1,126 @@
+-- JOJO STAND - ONE SCRIPT
+-- Put this Script in ServerScriptService
+-- Put your Stand Model inside ReplicatedStorage and name it "Stand"
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local remote = Instance.new("RemoteEvent")
+remote.Name = "StandRemote"
+remote.Parent = ReplicatedStorage
+
+local cooldown = {}
+
+local function summonStand(player)
+	local character = player.Character
+	if not character then return end
+
+	local playerRoot = character:FindFirstChild("HumanoidRootPart")
+	if not playerRoot then return end
+
+	local oldStand = character:FindFirstChild("MyStand")
+
+	if oldStand then
+		oldStand:Destroy()
+		return
+	end
+
+	local template = ReplicatedStorage:FindFirstChild("Stand")
+	if not template then
+		warn("No Stand model found in ReplicatedStorage!")
+		return
+	end
+
+	local stand = template:Clone()
+	stand.Name = "MyStand"
+	stand.Parent = workspace
+
+	local standRoot = stand:FindFirstChild("HumanoidRootPart")
+
+	if not standRoot then
+		stand:Destroy()
+		warn("Stand needs a HumanoidRootPart!")
+		return
+	end
+
+	standRoot.CFrame =
+		playerRoot.CFrame * CFrame.new(3, 0, 2)
+
+	-- Make stand follow player
+	task.spawn(function()
+		while stand.Parent and character.Parent do
+			local root = character:FindFirstChild("HumanoidRootPart")
+			local sr = stand:FindFirstChild("HumanoidRootPart")
+
+			if root and sr then
+				local target =
+					root.CFrame * CFrame.new(3, 0, 2)
+
+				sr.CFrame = sr.CFrame:Lerp(
+					target,
+					0.25
+				)
+			end
+
+			task.wait()
+		end
+	end)
+end
+
+local function punch(player)
+	if cooldown[player] then return end
+	cooldown[player] = true
+
+	local character = player.Character
+	if not character then
+		cooldown[player] = nil
+		return
+	end
+
+	local stand = workspace:FindFirstChild("MyStand")
+
+	if not stand then
+		cooldown[player] = nil
+		return
+	end
+
+	local standRoot = stand:FindFirstChild("HumanoidRootPart")
+
+	if standRoot then
+		for _, model in ipairs(workspace:GetChildren()) do
+			local humanoid = model:FindFirstChildOfClass("Humanoid")
+			local root = model:FindFirstChild("HumanoidRootPart")
+
+			if humanoid
+				and root
+				and model ~= character
+				and model ~= stand then
+
+				local distance =
+					(root.Position - standRoot.Position).Magnitude
+
+				if distance <= 7 then
+					humanoid:TakeDamage(20)
+				end
+			end
+		end
+	end
+
+	task.wait(0.6)
+	cooldown[player] = nil
+end
+
+remote.OnServerEvent:Connect(function(player, action)
+
+	if action == "Summon" then
+		summonStand(player)
+
+	elseif action == "Punch" then
+		punch(player)
+
+	end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+	cooldown[player] = nil
+end)
