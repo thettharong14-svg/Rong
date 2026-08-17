@@ -1,0 +1,319 @@
+--// 🩵 SKY BLUE AIM TESTER
+--// For testing in YOUR OWN Roblox Studio experience
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+--==================================================
+-- SETTINGS
+--==================================================
+
+local AimEnabled = false
+local ESPEnabled = true
+local WallCheck = true
+local TeamCheck = true
+
+local AimStrength = 0.35
+local AimRange = 300
+
+--==================================================
+-- GUI
+--==================================================
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "SkyBlueAimTester"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+--==================================================
+-- MAIN GUI
+--==================================================
+
+local main = Instance.new("Frame")
+main.Name = "Main"
+main.Size = UDim2.fromOffset(285,335)
+main.Position = UDim2.new(0,20,0.5,-167)
+main.BackgroundColor3 = Color3.fromRGB(12,25,38)
+main.BorderSizePixel = 0
+main.Active = true
+main.Parent = gui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0,18)
+mainCorner.Parent = main
+
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Color = Color3.fromRGB(70,200,255)
+mainStroke.Thickness = 2
+mainStroke.Parent = main
+
+--==================================================
+-- TOP BAR
+--==================================================
+
+local top = Instance.new("Frame")
+top.Size = UDim2.new(1,0,0,62)
+top.BackgroundColor3 = Color3.fromRGB(35,145,210)
+top.BorderSizePixel = 0
+top.Parent = main
+
+local topCorner = Instance.new("UICorner")
+topCorner.CornerRadius = UDim.new(0,18)
+topCorner.Parent = top
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,-60,1,0)
+title.Position = UDim2.fromOffset(18,0)
+title.BackgroundTransparency = 1
+title.Text = "🎯  AIM TESTER"
+title.TextColor3 = Color3.new(1,1,1)
+title.TextSize = 20
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = top
+
+--==================================================
+-- CLOSE BUTTON
+--==================================================
+
+local close = Instance.new("TextButton")
+close.Size = UDim2.fromOffset(40,40)
+close.Position = UDim2.new(1,-48,0,11)
+close.BackgroundColor3 = Color3.fromRGB(20,110,170)
+close.Text = "×"
+close.TextSize = 28
+close.TextColor3 = Color3.new(1,1,1)
+close.Font = Enum.Font.GothamBold
+close.Parent = top
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0,12)
+closeCorner.Parent = close
+
+--==================================================
+-- DRAG MAIN GUI
+--==================================================
+
+local dragging = false
+local dragStart
+local startPosition
+
+top.InputBegan:Connect(function(input)
+
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
+
+		dragging = true
+		dragStart = input.Position
+		startPosition = main.Position
+
+		input.Changed:Connect(function()
+
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+
+		end)
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+
+	if not dragging then
+		return
+	end
+
+	if input.UserInputType == Enum.UserInputType.MouseMovement
+	or input.UserInputType == Enum.UserInputType.Touch then
+
+		local delta = input.Position - dragStart
+
+		main.Position = UDim2.new(
+			startPosition.X.Scale,
+			startPosition.X.Offset + delta.X,
+
+			startPosition.Y.Scale,
+			startPosition.Y.Offset + delta.Y
+		)
+	end
+end)
+
+--==================================================
+-- BUTTON CREATOR
+--==================================================
+
+local function createButton(text,y)
+
+	local button = Instance.new("TextButton")
+
+	button.Size = UDim2.new(1,-30,0,43)
+	button.Position = UDim2.fromOffset(15,y)
+
+	button.BackgroundColor3 = Color3.fromRGB(25,55,75)
+
+	button.Text = text
+	button.TextColor3 = Color3.new(1,1,1)
+	button.TextSize = 14
+	button.Font = Enum.Font.GothamSemibold
+
+	button.AutoButtonColor = false
+	button.Parent = main
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0,12)
+	corner.Parent = button
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(70,170,220)
+	stroke.Transparency = 0.45
+	stroke.Parent = button
+
+	button.MouseEnter:Connect(function()
+
+		TweenService:Create(
+			button,
+			TweenInfo.new(0.15),
+			{
+				BackgroundColor3 =
+					Color3.fromRGB(40,100,135)
+			}
+		):Play()
+
+	end)
+
+	button.MouseLeave:Connect(function()
+
+		if not button:GetAttribute("Active") then
+
+			TweenService:Create(
+				button,
+				TweenInfo.new(0.15),
+				{
+					BackgroundColor3 =
+						Color3.fromRGB(25,55,75)
+				}
+			):Play()
+
+		end
+
+	end)
+
+	return button
+end
+
+--==================================================
+-- BUTTONS
+--==================================================
+
+local aimButton =
+	createButton("🎯  Aim Assist     OFF",78)
+
+local espButton =
+	createButton("📦  ESP              ON",128)
+
+local wallButton =
+	createButton("🧱  Wall Check   ON",178)
+
+local strengthButton =
+	createButton("🧲  Strong Pull  35%",228)
+
+local teamButton =
+	createButton("👥  Team Check   ON",278)
+
+--==================================================
+-- STATE BUTTON
+--==================================================
+
+local function setButton(button,active,onText,offText)
+
+	button:SetAttribute("Active",active)
+
+	if active then
+
+		button.Text = onText
+		button.BackgroundColor3 =
+			Color3.fromRGB(35,145,210)
+
+	else
+
+		button.Text = offText
+		button.BackgroundColor3 =
+			Color3.fromRGB(25,55,75)
+
+	end
+end
+
+--==================================================
+-- ESP
+--==================================================
+
+local ESPFolder = Instance.new("Folder")
+ESPFolder.Name = "AimTesterESP"
+ESPFolder.Parent = workspace
+
+local ESPObjects = {}
+
+local function removeESP(player)
+
+	if ESPObjects[player] then
+
+		ESPObjects[player]:Destroy()
+		ESPObjects[player] = nil
+
+	end
+end
+
+local function createESP(player)
+
+	if player == LocalPlayer then
+		return
+	end
+
+	if ESPObjects[player] then
+		return
+	end
+
+	local box = Instance.new("BoxHandleAdornment")
+
+	box.Name = "ESPBox"
+
+	box.Size = Vector3.new(4,6,2)
+
+	box.Color3 =
+		Color3.fromRGB(70,200,255)
+
+	box.Transparency = 0.55
+
+	box.AlwaysOnTop = true
+
+	box.ZIndex = 5
+
+	box.Visible = false
+
+	box.Parent = ESPFolder
+
+	ESPObjects[player] = box
+end
+
+for _,player in ipairs(Players:GetPlayers()) do
+	createESP(player)
+end
+
+Players.PlayerAdded:Connect(createESP)
+Players.PlayerRemoving:Connect(removeESP)
+
+--==================================================
+-- UPDATE ESP
+--==================================================
+
+RunService.RenderStepped:Connect(function()
+
+	for player,box in pairs(ESPObjects) do
+
+		local character
