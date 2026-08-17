@@ -1,0 +1,210 @@
+-- AUTO CHECKPOINT TELEPORT GUI
+-- Put this LocalScript in StarterPlayer > StarterPlayerScripts
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local checkpoints = workspace:WaitForChild("Checkpoints")
+
+local running = false
+local currentCheckpoint = 1
+local MAX_CHECKPOINT = 251
+local DELAY = 0.5
+
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "AutoCheckpointGUI"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Main frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromOffset(230, 180)
+frame.Position = UDim2.new(0.5, -115, 0.5, -90)
+frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+frame.BorderSizePixel = 0
+frame.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = frame
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -40, 0, 40)
+title.Position = UDim2.fromOffset(10, 5)
+title.BackgroundTransparency = 1
+title.Text = "AUTO CHECKPOINT"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextScaled = true
+title.Parent = frame
+
+-- Close button
+local close = Instance.new("TextButton")
+close.Size = UDim2.fromOffset(30, 30)
+close.Position = UDim2.new(1, -35, 0, 5)
+close.Text = "X"
+close.TextScaled = true
+close.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+close.TextColor3 = Color3.new(1, 1, 1)
+close.Parent = frame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = close
+
+-- Start button
+local start = Instance.new("TextButton")
+start.Size = UDim2.new(1, -30, 0, 45)
+start.Position = UDim2.fromOffset(15, 50)
+start.Text = "▶ START"
+start.TextScaled = true
+start.BackgroundColor3 = Color3.fromRGB(50, 170, 80)
+start.TextColor3 = Color3.new(1, 1, 1)
+start.Parent = frame
+
+local startCorner = Instance.new("UICorner")
+startCorner.CornerRadius = UDim.new(0, 8)
+startCorner.Parent = start
+
+-- Stop button
+local stop = Instance.new("TextButton")
+stop.Size = UDim2.new(1, -30, 0, 45)
+stop.Position = UDim2.fromOffset(15, 105)
+stop.Text = "⏹ STOP"
+stop.TextScaled = true
+stop.BackgroundColor3 = Color3.fromRGB(190, 60, 60)
+stop.TextColor3 = Color3.new(1, 1, 1)
+stop.Parent = frame
+
+local stopCorner = Instance.new("UICorner")
+stopCorner.CornerRadius = UDim.new(0, 8)
+stopCorner.Parent = stop
+
+-- Open button
+local open = Instance.new("TextButton")
+open.Size = UDim2.fromOffset(100, 45)
+open.Position = UDim2.fromOffset(15, 15)
+open.Text = "OPEN"
+open.TextScaled = true
+open.BackgroundColor3 = Color3.fromRGB(50, 120, 220)
+open.TextColor3 = Color3.new(1, 1, 1)
+open.Visible = false
+open.Parent = gui
+
+local openCorner = Instance.new("UICorner")
+openCorner.CornerRadius = UDim.new(0, 8)
+openCorner.Parent = open
+
+-- Get checkpoint position
+local function getCheckpoint(checkpoint)
+	if checkpoint:IsA("BasePart") then
+		return checkpoint.CFrame
+	elseif checkpoint:IsA("Model") then
+		return checkpoint:GetPivot()
+	end
+
+	return nil
+end
+
+-- Teleport loop
+local function startAutoFarm()
+	if running then return end
+
+	running = true
+
+	task.spawn(function()
+		while running and currentCheckpoint <= MAX_CHECKPOINT do
+
+			local checkpoint =
+				checkpoints:FindFirstChild(tostring(currentCheckpoint))
+
+			if checkpoint then
+				local character = player.Character
+
+				if character then
+					local root =
+						character:FindFirstChild("HumanoidRootPart")
+
+					local cf = getCheckpoint(checkpoint)
+
+					if root and cf then
+						root.CFrame =
+							cf + Vector3.new(0, 3, 0)
+					end
+				end
+
+				currentCheckpoint += 1
+			else
+				-- If checkpoint doesn't exist, skip it
+				currentCheckpoint += 1
+			end
+
+			task.wait(DELAY)
+		end
+
+		running = false
+	end)
+end
+
+-- Start
+start.MouseButton1Click:Connect(function()
+	if currentCheckpoint > MAX_CHECKPOINT then
+		currentCheckpoint = 1
+	end
+
+	startAutoFarm()
+end)
+
+-- Stop
+stop.MouseButton1Click:Connect(function()
+	running = false
+end)
+
+-- Close
+close.MouseButton1Click:Connect(function()
+	frame.Visible = false
+	open.Visible = true
+end)
+
+-- Open
+open.MouseButton1Click:Connect(function()
+	frame.Visible = true
+	open.Visible = false
+end)
+
+-- Mobile dragging
+local dragging = false
+local dragStart
+local startPos
+
+title.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch
+		or input.UserInputType == Enum.UserInputType.MouseButton1 then
+
+		dragging = true
+		dragStart = input.Position
+		startPos = frame.Position
+	end
+end)
+
+title.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch
+		or input.UserInputType == Enum.UserInputType.MouseButton1 then
+
+		dragging = false
+	end
+end)
+
+title.InputChanged:Connect(function(input)
+	if dragging then
+		local delta = input.Position - dragStart
+
+		frame.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+end)
